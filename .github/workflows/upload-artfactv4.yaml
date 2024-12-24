@@ -1,0 +1,56 @@
+name: test upload-artifactv4
+
+on:
+  pull_request:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test: [1, 2, 3]
+    steps:
+      - run: |
+          mkdir -p ${{ matrix.test }}
+          echo "job ${{ matrix.test }}" > ${{ matrix.test }}/test-${{ matrix.test }}.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
+        with:
+          name: upload-artifactv4-${{ matrix.test }}
+          path: ${{ matrix.test}}/test-${{ matrix.test }}.txt
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: upload
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@6f51ac03b9356f520e9adb1b1b7802705f340c2b
+        with:
+          name: upload-artifactv4
+          pattern: upload-artifactv4-*
+          retention-days: 1
+
+  download-with-merge:
+    runs-on: ubuntu-latest
+    needs: merge
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: upload-artifactv4
+
+      - run: tree .
+
+  download-with-merge-multiple:
+    runs-on: ubuntu-latest
+    needs: upload
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: upload-artifactv4
+          pattern: upload-artifactv4-*
+          merge-multiple: true
+
+      - run: tree .
