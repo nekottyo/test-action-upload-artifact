@@ -1,0 +1,30 @@
+name: test upload-artifactv3
+
+on:
+  pull_request:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test: [1, 2, 3]
+    steps:
+      - run: echo "job ${{ matrix.test }}" > test.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: upload-artifactv3
+          path: ${{ matrix.test}}/test.txt
+
+  download:
+    runs-on: ubuntu-latest
+    needs: upload
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: upload-artifactv3
+          path: artifactv3
+
+      - run: tree .
